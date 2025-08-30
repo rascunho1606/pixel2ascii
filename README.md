@@ -22,7 +22,6 @@ Um gerador de arte ASCII feito em **HTML, CSS e JavaScript**, que transforma ima
 
 ![preview](https://github.com/user-attachments/assets/51e78553-dc3e-48b2-b542-cda58de2f0c7)
 
-*(Substitua a imagem acima por uma captura de tela do projeto em execução)*
 
 ## 📦 Como usar
 
