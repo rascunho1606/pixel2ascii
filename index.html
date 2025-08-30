@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Arte ASCII</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-area {
+            border: 3px dashed #3498db;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #2980b9;
+            background: linear-gradient(45deg, #e9ecef, #dee2e6);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: #27ae60;
+            background: linear-gradient(45deg, #d4edda, #c3e6cb);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .control-group input, .control-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .control-group input:focus, .control-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 20px auto;
+            min-width: 200px;
+        }
+
+        .generate-btn:hover {
+            background: linear-gradient(135deg, #2980b9, #1f4e79);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .generate-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-area {
+            margin-top: 30px;
+        }
+
+        .original-preview {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .original-preview img {
+            max-width: 400px;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .ascii-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 8px;
+            line-height: 1;
+            white-space: pre;
+            overflow-x: auto;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(135deg, #219a52, #1e8449);
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Gerador de Arte ASCII</h1>
+        
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept="image/*">
+            <div class="upload-text">📷 Clique aqui ou arraste uma imagem</div>
+            <div style="color: #7f8c8d; font-size: 0.9em;">Suporta JPG, PNG, GIF, etc.</div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="width">Largura (caracteres):</label>
+                <input type="number" id="width" value="80" min="20" max="200">
+            </div>
+            
+            <div class="control-group">
+                <label for="charset">Conjunto de caracteres:</label>
+                <select id="charset">
+                    <option value="detailed">Detalhado: @%#*+=-:. </option>
+                    <option value="simple">Simples: @#*+=-. </option>
+                    <option value="blocks">Blocos: ██▓▒░  </option>
+                    <option value="custom">Personalizado</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="customChars">Caracteres personalizados:</label>
+                <input type="text" id="customChars" placeholder="Ex: @#*+=-:. " disabled>
+            </div>
+            
+            <div class="control-group">
+                <label for="scale">Escala:</label>
+                <select id="scale">
+                    <option value="auto">Auto (baseada na largura)</option>
+                    <option value="original">Tamanho original</option>
+                    <option value="25">25% do original</option>
+                    <option value="50">50% do original</option>
+                    <option value="75">75% do original</option>
+                    <option value="150">150% do original</option>
+                    <option value="200">200% do original</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="invert">Inverter cores:</label>
+                <select id="invert">
+                    <option value="false">Não</option>
+                    <option value="true">Sim</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" disabled>Gerar Arte ASCII</button>
+
+        <div class="result-area" id="resultArea" style="display: none;">
+            <div class="original-preview" id="originalPreview"></div>
+            <div style="text-align: center;">
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Copiar ASCII</button>
+                <button class="copy-btn" onclick="printASCII()" style="background: linear-gradient(135deg, #8e44ad, #7d3c98); margin-left: 10px;">🖨️ Imprimir</button>
+            </div>
+            <div class="ascii-output" id="asciiOutput"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentImage = null;
+        
+        // Conjuntos de caracteres predefinidos
+        const charsets = {
+            detailed: '@%#*+=-:. ',
+            simple: '@#*+=-. ',
+            blocks: '██▓▒░  ',
+            custom: ''
+        };
+
+        // Configuração do upload
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.querySelector('.upload-area');
+        const generateBtn = document.getElementById('generateBtn');
+        const charsetSelect = document.getElementById('charset');
+        const customCharsInput = document.getElementById('customChars');
+
+        // Eventos de drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        charsetSelect.addEventListener('change', () => {
+            const isCustom = charsetSelect.value === 'custom';
+            customCharsInput.disabled = !isCustom;
+            if (isCustom) {
+                customCharsInput.focus();
+            }
+        });
+
+        generateBtn.addEventListener('click', generateASCII);
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor, selecione apenas arquivos de imagem!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImage = new Image();
+                currentImage.onload = () => {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Gerar Arte ASCII';
+                };
+                currentImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function generateASCII() {
+            if (!currentImage) return;
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Gerando...';
+
+            // Mostrar loading
+            const resultArea = document.getElementById('resultArea');
+            resultArea.style.display = 'block';
+            resultArea.innerHTML = '<div class="loading">Processando imagem...</div>';
+
+            setTimeout(() => {
+                try {
+                    // Configurações
+                    const widthInput = parseInt(document.getElementById('width').value);
+                    const scaleOption = document.getElementById('scale').value;
+                    const selectedCharset = document.getElementById('charset').value;
+                    const invert = document.getElementById('invert').value === 'true';
+                    
+                    let chars = charsets[selectedCharset];
+                    if (selectedCharset === 'custom') {
+                        chars = document.getElementById('customChars').value || charsets.detailed;
+                    }
+
+                    // Calcular dimensões baseadas na escala
+                    let width, height;
+                    
+                    if (scaleOption === 'auto') {
+                        width = widthInput;
+                        const aspectRatio = currentImage.height / currentImage.width;
+                        height = Math.round(width * aspectRatio * 0.5);
+                    } else if (scaleOption === 'original') {
+                        width = currentImage.width;
+                        height = Math.round(currentImage.height * 0.5); // 0.5 para compensar altura dos caracteres
+                    } else {
+                        const scale = parseFloat(scaleOption) / 100;
+                        width = Math.round(currentImage.width * scale);
+                        height = Math.round(currentImage.height * scale * 0.5);
+                    }
+
+                    // Converter para ASCII
+                    const ascii = imageToASCII(currentImage, width, height, chars, invert);
+
+                    // Mostrar resultado
+                    showResult(currentImage, ascii, width, height);
+
+                } catch (error) {
+                    console.error('Erro ao gerar ASCII:', error);
+                    resultArea.innerHTML = '<div style="color: red; text-align: center; padding: 20px;">Erro ao processar a imagem. Tente novamente.</div>';
+                }
+
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Gerar Arte ASCII';
+            }, 100);
+        }
+
+        function imageToASCII(img, width, height, chars, invert) {
+            // Criar canvas para processar a imagem
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // Desenhar imagem redimensionada
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Obter dados dos pixels
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const pixels = imageData.data;
+
+            let ascii = '';
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const i = (y * width + x) * 4;
+                    
+                    // Calcular brilho (luminância)
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+                    const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+
+                    // Mapear brilho para caractere
+                    let charIndex = Math.floor((invert ? 1 - brightness : brightness) * (chars.length - 1));
+                    ascii += chars[charIndex];
+                }
+                ascii += '\n';
+            }
+
+            return ascii;
+        }
+
+        function showResult(img, ascii, width, height) {
+            const resultArea = document.getElementById('resultArea');
+            
+            resultArea.innerHTML = `
+                <div class="original-preview">
+                    <h3 style="margin-bottom: 15px; color: #2c3e50;">Imagem Original</h3>
+                    <img src="${img.src}" alt="Original">
+                    <p style="color: #666; margin-top: 10px; font-size: 0.9em;">
+                        Original: ${img.width}x${img.height}px → ASCII: ${width}x${height} caracteres
+                    </p>
+                </div>
+                <div style="text-align: center;">
+                    <button class="copy-btn" onclick="copyToClipboard()">📋 Copiar ASCII</button>
+                    <button class="copy-btn" onclick="printASCII()" style="background: linear-gradient(135deg, #8e44ad, #7d3c98); margin-left: 10px;">🖨️ Imprimir</button>
+                </div>
+                <div class="ascii-output" id="asciiOutput">${ascii}</div>
+            `;
+        }
+
+        function copyToClipboard() {
+            const asciiOutput = document.getElementById('asciiOutput');
+            const text = asciiOutput.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copiado!';
+                btn.style.background = 'linear-gradient(135deg, #27ae60, #219a52)';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = 'linear-gradient(135deg, #27ae60, #219a52)';
+                }, 2000);
+            }).catch(() => {
+                alert('Erro ao copiar. Selecione o texto manualmente.');
+            });
+        }
+
+        function printASCII() {
+            const asciiOutput = document.getElementById('asciiOutput');
+            const text = asciiOutput.textContent;
+            
+            // Criar uma nova janela para impressão
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Arte ASCII - Impressão</title>
+                    <style>
+                        body {
+                            font-family: 'Courier New', monospace;
+                            font-size: 6px;
+                            line-height: 1;
+                            margin: 10px;
+                            white-space: pre;
+                        }
+                        @media print {
+                            body {
+                                font-size: 5px;
+                                margin: 5px;
+                            }
+                            @page {
+                                margin: 0.5cm;
+                                size: A4 landscape;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>${text}</body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            
+            // Aguardar o carregamento e imprimir
+            printWindow.onload = () => {
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+            };
+        }
+    </script>
+</body>
+</html>
