@@ -1,6 +1,7 @@
 # pixel2ascii
 Gerador de Arte ASCII em HTML, CSS e JS. Converta imagens em artes feitas apenas com caracteres, escolha conjuntos personalizados, ajuste escala, largura e cores. Copie ou imprima facilmente seus resultados e crie efeitos retrô únicos direto no navegador.
 
+🔗 **Acesse aqui:** [rascunho1606.github.io/pixel2ascii](https://rascunho1606.github.io/pixel2ascii/)
 
 # 🎨 Gerador de Arte ASCII
 
@@ -19,7 +20,7 @@ Um gerador de arte ASCII feito em **HTML, CSS e JavaScript**, que transforma ima
 
 ## 🖼️ Demonstração
 
-![preview](https://via.placeholder.com/600x300?text=Exemplo+ASCII)
+![preview](https://github.com/user-attachments/assets/51e78553-dc3e-48b2-b542-cda58de2f0c7)
 
 *(Substitua a imagem acima por uma captura de tela do projeto em execução)*
 
