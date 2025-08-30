@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -135,13 +135,47 @@
         .original-preview {
             text-align: center;
             margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #dee2e6;
+        }
+
+        .original-preview h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.4em;
+        }
+
+        .image-container {
+            display: inline-block;
+            max-width: 100%;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background: #fff;
+            padding: 10px;
         }
 
         .original-preview img {
-            max-width: 400px;
-            max-height: 300px;
-            border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .image-info {
+            color: #666;
+            margin-top: 15px;
+            font-size: 0.95em;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
         }
 
         .ascii-output {
@@ -154,9 +188,12 @@
             line-height: 1;
             white-space: pre;
             overflow-x: auto;
+            overflow-y: auto;
             border: 2px solid #333;
             box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
             margin-top: 20px;
+            max-height: 80vh;
+            resize: both;
         }
 
         .copy-btn {
@@ -167,7 +204,7 @@
             font-size: 1em;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
+            margin: 5px;
             transition: all 0.3s ease;
         }
 
@@ -197,6 +234,43 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .original-preview img {
+                max-height: 50vh;
+            }
+            
+            .ascii-output {
+                font-size: 6px;
+                max-height: 60vh;
+            }
+        }
+
+        /* Ajustes para imagens muito largas */
+        @media (max-width: 480px) {
+            .original-preview img {
+                max-height: 40vh;
+            }
+            
+            .ascii-output {
+                font-size: 5px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -259,7 +333,8 @@
             <div class="original-preview" id="originalPreview"></div>
             <div style="text-align: center;">
                 <button class="copy-btn" onclick="copyToClipboard()">📋 Copiar ASCII</button>
-                <button class="copy-btn" onclick="printASCII()" style="background: linear-gradient(135deg, #8e44ad, #7d3c98); margin-left: 10px;">🖨️ Imprimir</button>
+                <button class="copy-btn" onclick="printASCII()" style="background: linear-gradient(135deg, #8e44ad, #7d3c98);">🖨️ Imprimir</button>
+                <button class="copy-btn" onclick="downloadASCII()" style="background: linear-gradient(135deg, #e67e22, #d35400);">💾 Download</button>
             </div>
             <div class="ascii-output" id="asciiOutput"></div>
         </div>
@@ -432,17 +507,27 @@
         function showResult(img, ascii, width, height) {
             const resultArea = document.getElementById('resultArea');
             
+            // Calcular tamanho do arquivo da imagem
+            const fileSizeKB = Math.round((img.src.length * 3/4) / 1024);
+            const aspectRatio = (img.width / img.height).toFixed(2);
+            
             resultArea.innerHTML = `
                 <div class="original-preview">
-                    <h3 style="margin-bottom: 15px; color: #2c3e50;">Imagem Original</h3>
-                    <img src="${img.src}" alt="Original">
-                    <p style="color: #666; margin-top: 10px; font-size: 0.9em;">
-                        Original: ${img.width}x${img.height}px → ASCII: ${width}x${height} caracteres
-                    </p>
+                    <h3>Imagem Original</h3>
+                    <div class="image-container">
+                        <img src="${img.src}" alt="Original">
+                    </div>
+                    <div class="image-info">
+                        <strong>Dimensões:</strong> ${img.width} × ${img.height} pixels<br>
+                        <strong>Proporção:</strong> ${aspectRatio}:1<br>
+                        <strong>Tamanho aproximado:</strong> ~${fileSizeKB} KB<br>
+                        <strong>ASCII gerado:</strong> ${width} × ${height} caracteres
+                    </div>
                 </div>
                 <div style="text-align: center;">
                     <button class="copy-btn" onclick="copyToClipboard()">📋 Copiar ASCII</button>
-                    <button class="copy-btn" onclick="printASCII()" style="background: linear-gradient(135deg, #8e44ad, #7d3c98); margin-left: 10px;">🖨️ Imprimir</button>
+                    <button class="copy-btn" onclick="printASCII()" style="background: linear-gradient(135deg, #8e44ad, #7d3c98);">🖨️ Imprimir</button>
+                    <button class="copy-btn" onclick="downloadASCII()" style="background: linear-gradient(135deg, #e67e22, #d35400);">💾 Download</button>
                 </div>
                 <div class="ascii-output" id="asciiOutput">${ascii}</div>
             `;
@@ -467,6 +552,34 @@
             });
         }
 
+        function downloadASCII() {
+            const asciiOutput = document.getElementById('asciiOutput');
+            const text = asciiOutput.textContent;
+            
+            // Criar blob com o conteúdo ASCII
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            // Criar link de download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ascii-art-${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Limpar URL
+            URL.revokeObjectURL(url);
+            
+            // Feedback visual
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Baixado!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }
+
         function printASCII() {
             const asciiOutput = document.getElementById('asciiOutput');
             const text = asciiOutput.textContent;
@@ -488,7 +601,7 @@
                         }
                         @media print {
                             body {
-                                font-size: 5px;
+                                font-size: 4px;
                                 margin: 5px;
                             }
                             @page {
